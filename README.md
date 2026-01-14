@@ -4,12 +4,28 @@ A simple, multithreaded TCP port scanner written in Python using the `socket` an
 
 ## Features
 
-- **Multithreaded:** Uses a queue and worker threads to scan ports concurrently for faster execution.
+- **Multithreading:** Uses a queue and worker threads to scan ports concurrently for faster execution.
 - **Banner Grabbing:** Attempts to retrieve the service banner for open ports.
-- **Randomised Scanning:** Option to shuffle the order of ports to scan.
-- **Command Line Interface:** Easily configurable via command-line arguments.
-- **Smart Duration Reporting:** Displays elapsed time in a human-readable format.
-- **Error Handling:** Gracefully handles invalid hostnames, socket errors, and user interrupts.
+
+### Command Line Interface
+
+Allows for easy configuration of the target, port range, thread count, and scanning mode directly from the terminal.
+
+### Randomised Scanning
+
+Scanner provides an option to shuffle the order of ports to be scanned. This avoids sequential scanning patterns often flagged by intrusion detection systems.
+
+### Integrity Checking
+
+Includes coverage verification step at the end of the scan to confirm that every port in the specified range was processed.
+
+### Smart Duration Reporting
+
+Scan execution time is tracked and displayed in a dynamic, human-readable format.
+
+### Error Handling
+
+The scanner gracefully handles common issues such as invalid hostnames, socket connection errors, and user interruptions.
 
 ## Usage
 

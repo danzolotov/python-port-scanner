@@ -79,6 +79,8 @@ args = get_arguments()
 target = args.target
 queue = Queue()
 open_ports = []
+scanned_ports = set()
+log_lock = threading.Lock()
 
 
 def scan_port(port):
@@ -95,18 +97,24 @@ def scan_port(port):
         result = s.connect_ex((target, port))
 
         if result == 0:
-            # Banner Grabbing
+            # Grab banner
             try:
                 banner = s.recv(1024).decode().strip()
             except:
                 banner = "Unknown Service"
-
-            print(f"Port {port} is OPEN: {banner}")
-            open_ports.append(port)
+            with log_lock:
+                print(f"Port {port} is OPEN: {banner}")
+                open_ports.append(port)
 
         s.close()
+
     except socket.error as e:
         print(f"Socket error: {e}")
+
+    finally:
+        # Mark port as processed
+        with log_lock:
+            scanned_ports.add(port)
 
 
 def worker():
@@ -166,6 +174,14 @@ def run_scanner():
     # Wait for completion
     for thread in threads:
         thread.join()  # Ensures main program waits for all threads to finish
+
+    # Check integrity
+    missing_ports = set(ports) - scanned_ports
+    if len(missing_ports) == 0:
+        print("Integrity Check: PASS")
+    else:
+        print(f"Integrity Check: FAIL. Missed {len(missing_ports)} ports.")
+        print(f"Missing ports: \n{sorted(missing_ports)}")
 
     # Record end time
     end_time = datetime.now()
