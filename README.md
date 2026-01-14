@@ -4,20 +4,34 @@ A simple, multithreaded TCP port scanner written in Python using the `socket` an
 
 ## Features
 
-- **Multithreading**: Uses a queue and worker threads to scan ports concurrently for faster execution.
-- **Banner Grabbing**: Attempts to retrieve the service banner for open ports.
-- **Configurable**: Easily adjustable target, port range, and thread count.
+- **Multithreaded:** Uses a queue and worker threads to scan ports concurrently for faster execution.
+- **Banner Grabbing:** Attempts to retrieve the service banner for open ports.
+- **Command Line Interface:** Easily configurable via command-line arguments.
+- **Smart Duration Reporting:** Displays elapsed time in a human-readable format.
+- **Error Handling:** Gracefully handles invalid hostnames, socket errors, and user interrupts.
 
 ## Usage
 
 1. **Prerequisites:** Ensure you have Python installed.
-2. **Configuration:** Edit the `TARGET` variable in `multithreaded_port_scanner.py` to specify the host you want to scan.
-   ```python
-   TARGET = "127.0.0.1"
-   ```
-3. **Run the scanner:**
+2. **Run the scanner:**
+   Run the script from the command line, specifying the target IP or domain.
+
    ```bash
-   python multithreaded_port_scanner.py
+   python multithreaded_port_scanner.py -t <TARGET_IP>
+   ```
+
+   **Arguments:**
+
+   - `-t`, `--target`: Target domain or IP address (**Required**)
+   - `-s`, `--start`: Start Port (default: 1)
+   - `-e`, `--end`: End Port (default: 1024)
+   - `--threads`: Number of threads (default: 100)
+
+   **Example:**
+   Scan `scanme.nmap.org` from port 1 to 500 with 50 threads:
+
+   ```bash
+   python multithreaded_port_scanner.py -t scanme.nmap.org -s 1 -e 500 --threads 50
    ```
 
 ## Disclaimer
