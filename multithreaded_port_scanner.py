@@ -15,6 +15,7 @@ Usage:
 """
 
 import argparse
+import random
 import socket
 import sys
 import threading
@@ -61,6 +62,13 @@ def get_arguments():
         type=int,
         default=100,
         help="Number of threads (default: 100)",
+    )
+    parser.add_argument(
+        "-r",
+        "--random",
+        dest="randomise",
+        action="store_true",
+        help="Randomise the order of ports scanned",
     )
 
     return parser.parse_args()
@@ -137,8 +145,13 @@ def run_scanner():
     print(f"Scan started at: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
     print("-" * 30)
 
+    ports = list(range(args.start_port, args.end_port + 1))
+    # Randomise ports if needed
+    if args.randomise:
+        random.shuffle(ports)
+
     # Populate Queue
-    for port in range(args.start_port, args.end_port + 1):
+    for port in ports:
         queue.put(port)
 
     # Create & start threads

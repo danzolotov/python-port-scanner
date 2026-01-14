@@ -6,6 +6,7 @@ A simple, multithreaded TCP port scanner written in Python using the `socket` an
 
 - **Multithreaded:** Uses a queue and worker threads to scan ports concurrently for faster execution.
 - **Banner Grabbing:** Attempts to retrieve the service banner for open ports.
+- **Randomised Scanning:** Option to shuffle the order of ports to scan.
 - **Command Line Interface:** Easily configurable via command-line arguments.
 - **Smart Duration Reporting:** Displays elapsed time in a human-readable format.
 - **Error Handling:** Gracefully handles invalid hostnames, socket errors, and user interrupts.
@@ -26,6 +27,7 @@ A simple, multithreaded TCP port scanner written in Python using the `socket` an
    - `-s`, `--start`: Start Port (default: 1)
    - `-e`, `--end`: End Port (default: 1024)
    - `--threads`: Number of threads (default: 100)
+   - `-r`, `--random`: Randomise the order of ports scanned
 
    **Example:**
    Scan `scanme.nmap.org` from port 1 to 500 with 50 threads:
