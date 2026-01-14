@@ -27,6 +27,10 @@ Scan execution time is tracked and displayed in a dynamic, human-readable format
 
 The scanner gracefully handles common issues such as invalid hostnames, socket connection errors, and user interruptions.
 
+### JSON Output
+
+The results can be saved to a JSON file for further analysis or reporting. This includes scan metadata and detailed findings.
+
 ## Usage
 
 1. **Prerequisites:** Ensure you have Python installed.
@@ -44,12 +48,13 @@ The scanner gracefully handles common issues such as invalid hostnames, socket c
    - `-e`, `--end`: End Port (default: 1024)
    - `--threads`: Number of threads (default: 100)
    - `-r`, `--random`: Randomise the order of ports scanned
+   - `-o`, `--output`: Path to save the results as a JSON file
 
    **Example:**
-   Scan `scanme.nmap.org` from port 1 to 500 with 50 threads:
+   Scan `scanme.nmap.org` from port 1 to 1024 with 100 threads:
 
    ```bash
-   python multithreaded_port_scanner.py -t scanme.nmap.org -s 1 -e 500 --threads 50
+   python multithreaded_port_scanner.py -t scanme.nmap.org -s 1 -e 1024 --threads 100 -o report.json
    ```
 
 ## Disclaimer

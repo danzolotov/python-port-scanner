@@ -15,6 +15,7 @@ Usage:
 """
 
 import argparse
+import json
 import random
 import socket
 import sys
@@ -70,6 +71,12 @@ def get_arguments():
         action="store_true",
         help="Randomise the order of ports scanned",
     )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest="output",
+        help="Path to save the results as a JSON file",
+    )
 
     return parser.parse_args()
 
@@ -104,7 +111,7 @@ def scan_port(port):
                 banner = "Unknown Service"
             with log_lock:
                 print(f"Port {port} is OPEN: {banner}")
-                open_ports.append(port)
+                open_ports.append({"port": port, "banner": banner})
 
         s.close()
 
@@ -189,7 +196,8 @@ def run_scanner():
 
     print("-" * 30)
     print(f"Scan ended at: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"Scan complete. Open ports: \n{sorted(open_ports)}")
+    simple_ports = sorted([p["port"] for p in open_ports])
+    print(f"Scan complete. Open ports: \n{simple_ports}")
 
     # Dynamic time formatting
     hours, remainder = divmod(total_time.total_seconds(), 3600)
@@ -203,6 +211,34 @@ def run_scanner():
         dynamic_time = f"{seconds:.2f}s"
 
     print(f"Time elapsed: {dynamic_time}")
+
+    if args.output:
+        save_logs(args.output, dynamic_time)
+
+
+def save_logs(filename, duration):
+    """
+    Saves scan results to JSON file.
+    """
+    data = {
+        "target": target,
+        "scan_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "arguments": {
+            "start_port": args.start_port,
+            "end_port": args.end_port,
+            "threads": args.threads,
+            "randomise": args.randomise,
+        },
+        "scan_duration": duration,
+        "open_ports": sorted(open_ports, key=lambda x: x["port"]),
+    }
+
+    try:
+        with open(filename, "w") as f:
+            json.dump(data, f, indent=4)
+        print(f"Results successfully saved to {filename}")
+    except IOError as e:
+        print(f"Error saving file: {e}")
 
 
 if __name__ == "__main__":
