@@ -2,16 +2,18 @@
 Multithreaded Port Scanner
 --------------------------
 Author: Dan Zolotov
-Date: 14/01/2026
+Date: 15/01/2026
 Description:
     CLI tool to scan a target IP for open ports using multithreading.
     Performs a TCP connect scan and attempts to grab the service banner.
+    Supports saving results to a JSON file and randomising scan order.
 
 Usage:
-    python scanner.py -t <TARGET_IP> [-s <START_PORT>] [-e <END_PORT>] [--threads <NUM>]
+    python scanner.py -t <TARGET_IP> [-s <START_PORT>] [-e <END_PORT>] [--threads <NUM>] [-r] [-o <OUTPUT_FILE>]
 
-    Example:
+    Examples:
     python scanner.py -t scanme.nmap.org -s 1 -e 1024
+    python scanner.py -t scanme.nmap.org -o results.json -r
 """
 
 import argparse
@@ -22,9 +24,10 @@ import sys
 import threading
 from datetime import datetime
 from queue import Empty, Queue
+from typing import Any, Dict
 
 
-def get_arguments():
+def get_arguments() -> "argparse.Namespace":
     """
     Parses command-line arguments using argparse.
 
@@ -82,41 +85,42 @@ def get_arguments():
 
 
 # Global Variables
-args = get_arguments()
-target = args.target
 queue = Queue()
 open_ports = []
 scanned_ports = set()
 log_lock = threading.Lock()
+args = None
+target = None
 
 
-def scan_port(port):
+def scan_port(port: int) -> None:
     """
     Attempts to connect to a specific port on the target.
     If successful, attempts to grab the banner and adds the port to the open_ports list.
+
+    Args:
+        port: The port number to scan.
     """
     try:
         # Create IPv4 TCP socket object
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # Prevent hanging on filtered ports
-        s.settimeout(1)
-        # Attemp connection
-        result = s.connect_ex((target, port))
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            # Prevent hanging on filtered ports (1 second timeout)
+            s.settimeout(1)
+            # Attempt connection
+            result = s.connect_ex((target, port))
 
-        if result == 0:
-            # Grab banner
-            try:
-                banner = s.recv(1024).decode().strip()
-            except:
-                banner = "Unknown Service"
-            with log_lock:
-                print(f"Port {port} is OPEN: {banner}")
-                open_ports.append({"port": port, "banner": banner})
-
-        s.close()
+            if result == 0:
+                # Grab banner
+                try:
+                    banner = s.recv(1024).decode().strip()
+                except (socket.timeout, OSError, UnicodeDecodeError):
+                    banner = "Unknown Service"
+                with log_lock:
+                    print(f"Port {port} is OPEN: {banner}")
+                    open_ports.append({"port": port, "banner": banner})
 
     except socket.error as e:
-        print(f"Socket error: {e}")
+        print(f"Socket error on port {port}: {e}")
 
     finally:
         # Mark port as processed
@@ -124,7 +128,7 @@ def scan_port(port):
             scanned_ports.add(port)
 
 
-def worker():
+def worker() -> None:
     """
     Worker thread function.
     Continuously pulls ports from the queue and scans them until the queue is empty.
@@ -139,11 +143,21 @@ def worker():
             break
 
 
-def run_scanner():
+def run_scanner() -> None:
     """
     Main controller function.
     Resolves target, populates queue, spawns threads, and manages execution flow.
     """
+    # Validate port range
+    if (
+        args.start_port < 1
+        or args.end_port > 65535
+        or args.start_port > args.end_port
+    ):
+        print(f"Invalid Port Range: {args.start_port} to {args.end_port}")
+        print("Valid Range: 1 to 65535")
+        sys.exit()
+
     try:  # Verify hostname can be resolved
         target_ip = socket.gethostbyname(target)
     except socket.gaierror:
@@ -161,6 +175,7 @@ def run_scanner():
     print("-" * 30)
 
     ports = list(range(args.start_port, args.end_port + 1))
+
     # Randomise ports if needed
     if args.randomise:
         random.shuffle(ports)
@@ -196,7 +211,8 @@ def run_scanner():
 
     print("-" * 30)
     print(f"Scan ended at: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
-    simple_ports = sorted([p["port"] for p in open_ports])
+    with log_lock:
+        simple_ports = sorted([p["port"] for p in open_ports])
     print(f"Scan complete. Open ports: \n{simple_ports}")
 
     # Dynamic time formatting
@@ -216,11 +232,19 @@ def run_scanner():
         save_logs(args.output, dynamic_time)
 
 
-def save_logs(filename, duration):
+def save_logs(filename: str, duration: str) -> None:
     """
     Saves scan results to JSON file.
+
+    Args:
+        filename: Path to save the JSON results file.
+        duration: Formatted duration string of the scan.
     """
-    data = {
+    with log_lock:
+        # Thread-safe snapshot of open_ports
+        ports_snapshot = sorted(open_ports, key=lambda x: x["port"])
+
+    data: Dict[str, Any] = {
         "target": target,
         "scan_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "arguments": {
@@ -230,7 +254,7 @@ def save_logs(filename, duration):
             "randomise": args.randomise,
         },
         "scan_duration": duration,
-        "open_ports": sorted(open_ports, key=lambda x: x["port"]),
+        "open_ports": ports_snapshot,
     }
 
     try:
@@ -242,6 +266,8 @@ def save_logs(filename, duration):
 
 
 if __name__ == "__main__":
+    args = get_arguments()
+    target = args.target
     try:
         run_scanner()
     except KeyboardInterrupt:

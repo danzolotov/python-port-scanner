@@ -31,6 +31,10 @@ The scanner gracefully handles common issues such as invalid hostnames, socket c
 
 The results can be saved to a JSON file for further analysis or reporting. This includes scan metadata and detailed findings.
 
+### Testing Suite
+
+Includes a comprehensive test suite using `pytest` and `unittest.mock` to ensure reliability and correct functionality of core components.
+
 ## Usage
 
 1. **Prerequisites:** Ensure you have Python installed.
@@ -38,7 +42,7 @@ The results can be saved to a JSON file for further analysis or reporting. This 
    Run the script from the command line, specifying the target IP or domain.
 
    ```bash
-   python multithreaded_port_scanner.py -t <TARGET_IP>
+   python scanner.py -t <TARGET_IP>
    ```
 
    **Arguments:**
@@ -50,11 +54,18 @@ The results can be saved to a JSON file for further analysis or reporting. This 
    - `-r`, `--random`: Randomise the order of ports scanned
    - `-o`, `--output`: Path to save the results as a JSON file
 
-   **Example:**
+   **Examples:**
+
    Scan `scanme.nmap.org` from port 1 to 1024 with 100 threads:
 
    ```bash
-   python multithreaded_port_scanner.py -t scanme.nmap.org -s 1 -e 1024 --threads 100 -o report.json
+   python scanner.py -t scanme.nmap.org -s 1 -e 1024 --threads 100
+   ```
+
+   Scan with randomized order and save results to JSON:
+
+   ```bash
+   python scanner.py -t scanme.nmap.org -o results.json -r
    ```
 
 ## Disclaimer
