@@ -1,0 +1,8 @@
+.git
+.gitignore
+.flake8
+*.md
+requirements*.txt
+test_scanner.py
+Dockerfile
+.github/

@@ -1,6 +1,10 @@
 # Multithreaded Port Scanner
 
-A simple, multithreaded TCP port scanner written in Python using the `socket` and `threading` modules.
+[![CI](https://github.com/danzolotov/multithreaded-port-scanner/actions/workflows/ci.yml/badge.svg)](https://github.com/danzolotov/multithreaded-port-scanner/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+A multithreaded TCP port scanner written in Python using only the standard library (`socket`, `threading`, `queue`). Designed as a portfolio project demonstrating concurrent networking, CLI design, and software testing practices.
 
 ## Features
 
@@ -35,9 +39,13 @@ The results can be saved to a JSON file for further analysis or reporting. This 
 
 Includes a comprehensive test suite using `pytest` and `unittest.mock` to ensure reliability and correct functionality of core components.
 
+### Docker Support
+
+Run the scanner without installing Python directly — use the provided `Dockerfile` to build a self-contained image.
+
 ## Usage
 
-1. **Prerequisites:** Ensure you have Python installed.
+1. **Prerequisites:** Ensure you have Python 3.10+ installed (or Docker).
 2. **Run the scanner:**
    Run the script from the command line, specifying the target IP or domain.
 
@@ -67,6 +75,29 @@ Includes a comprehensive test suite using `pytest` and `unittest.mock` to ensure
    ```bash
    python scanner.py -t scanme.nmap.org -o results.json -r
    ```
+
+3. **Run with Docker:**
+
+   ```bash
+   docker build -t port-scanner .
+   docker run --rm port-scanner -t scanme.nmap.org -s 1 -e 1024
+   ```
+
+## Development
+
+Install development dependencies and run the test suite:
+
+```bash
+pip install -r requirements-dev.txt
+pytest test_scanner.py -v
+flake8 scanner.py test_scanner.py
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full contribution guidelines.
+
+## Roadmap
+
+Planned improvements are tracked in [ROADMAP.md](ROADMAP.md) and on the [GitHub Project board](https://github.com/danzolotov/multithreaded-port-scanner/projects). Highlights include UDP scanning, asyncio rewrite, additional output formats, and OS fingerprinting.
 
 ## Disclaimer
 
