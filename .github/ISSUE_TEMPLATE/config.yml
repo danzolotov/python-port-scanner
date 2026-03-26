@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Roadmap
+    url: https://github.com/danzolotov/multithreaded-port-scanner/blob/main/ROADMAP.md
+    about: View the project roadmap

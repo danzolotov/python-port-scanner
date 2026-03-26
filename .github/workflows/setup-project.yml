@@ -1,0 +1,407 @@
+name: Setup GitHub Project & Roadmap
+
+on:
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  repository-projects: write
+
+jobs:
+  setup:
+    name: Create Project and Roadmap Issues
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "roadmap" --color "0075ca" --description "Roadmap item" --repo ${{ github.repository }} || true
+          gh label create "enhancement" --color "a2eeef" --description "New feature or improvement" --repo ${{ github.repository }} || true
+          gh label create "devops" --color "e4e669" --description "CI/CD, Docker, infrastructure" --repo ${{ github.repository }} || true
+          gh label create "performance" --color "d93f0b" --description "Performance improvement" --repo ${{ github.repository }} || true
+          gh label create "phase-1" --color "bfd4f2" --description "Phase 1: DevOps & Code Quality" --repo ${{ github.repository }} || true
+          gh label create "phase-2" --color "d4c5f9" --description "Phase 2: Feature Enhancements" --repo ${{ github.repository }} || true
+          gh label create "phase-3" --color "f9d0c4" --description "Phase 3: Performance & Scalability" --repo ${{ github.repository }} || true
+          gh label create "phase-4" --color "c2e0c6" --description "Phase 4: Advanced Features" --repo ${{ github.repository }} || true
+
+      # ── Phase 1: DevOps & Code Quality ──────────────────────────────────────
+
+      - name: Create issue - CI/CD Pipeline
+        id: issue_ci
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh issue create \
+            --repo ${{ github.repository }} \
+            --title "Set up CI/CD pipeline with GitHub Actions" \
+            --label "roadmap,devops,phase-1" \
+            --body "## Summary
+          Automate testing and linting on every push and pull request.
+
+          ## Tasks
+          - [x] Create \`.github/workflows/ci.yml\` that runs pytest across Python 3.10, 3.11, and 3.12
+          - [x] Add flake8 linting step to the workflow
+          - [x] Add CI status badge to README
+          - [ ] Add code-coverage reporting (e.g. codecov)
+
+          ## Acceptance Criteria
+          - All tests pass on every push to main/master and on every PR
+          - Linting errors cause the pipeline to fail
+          - README displays a live CI status badge")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Create issue - Docker Support
+        id: issue_docker
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh issue create \
+            --repo ${{ github.repository }} \
+            --title "Add Docker support for containerised deployment" \
+            --label "roadmap,devops,phase-1" \
+            --body "## Summary
+          Allow users to run the scanner without installing Python or any dependencies.
+
+          ## Tasks
+          - [x] Write a \`Dockerfile\` based on \`python:3.12-slim\`
+          - [x] Add a \`.dockerignore\` file
+          - [ ] Document Docker usage in README
+          - [ ] Publish image to GitHub Container Registry (GHCR)
+
+          ## Acceptance Criteria
+          - \`docker build -t port-scanner .\` succeeds
+          - \`docker run --rm port-scanner -t scanme.nmap.org\` produces expected output")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Create issue - Code Quality Tools
+        id: issue_quality
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh issue create \
+            --repo ${{ github.repository }} \
+            --title "Add code quality tooling (flake8, mypy, pre-commit)" \
+            --label "roadmap,devops,phase-1" \
+            --body "## Summary
+          Improve code consistency and catch bugs before they reach CI.
+
+          ## Tasks
+          - [x] Add \`.flake8\` configuration file
+          - [x] Add \`requirements-dev.txt\` with dev dependencies
+          - [ ] Add \`mypy\` for static type checking
+          - [ ] Set up \`pre-commit\` hooks (black, isort, flake8, mypy)
+
+          ## Acceptance Criteria
+          - \`flake8 scanner.py\` exits cleanly
+          - \`mypy scanner.py\` reports no errors
+          - Pre-commit hooks prevent bad commits locally")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      # ── Phase 2: Feature Enhancements ───────────────────────────────────────
+
+      - name: Create issue - UDP Scanning
+        id: issue_udp
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh issue create \
+            --repo ${{ github.repository }} \
+            --title "Add UDP port scanning support" \
+            --label "roadmap,enhancement,phase-2" \
+            --body "## Summary
+          Extend the scanner to detect open UDP ports in addition to TCP.
+
+          ## Tasks
+          - [ ] Implement \`scan_port_udp()\` using \`SOCK_DGRAM\`
+          - [ ] Add \`--protocol\` CLI flag (\`tcp\`, \`udp\`, \`both\`)
+          - [ ] Handle ICMP port-unreachable responses to infer closed UDP ports
+          - [ ] Add tests for the UDP scan path
+          - [ ] Update README with UDP usage examples
+
+          ## Acceptance Criteria
+          - \`--protocol udp\` correctly identifies common open UDP ports (e.g. DNS 53)
+          - Results distinguish TCP and UDP in JSON output")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Create issue - IPv6 Support
+        id: issue_ipv6
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh issue create \
+            --repo ${{ github.repository }} \
+            --title "Add IPv6 address support" \
+            --label "roadmap,enhancement,phase-2" \
+            --body "## Summary
+          Support scanning targets with IPv6 addresses.
+
+          ## Tasks
+          - [ ] Detect IPv6 vs IPv4 target and use \`AF_INET6\` socket family accordingly
+          - [ ] Update hostname resolution to handle \`AAAA\` records
+          - [ ] Add CLI flag \`--ipv6\` to force IPv6 resolution
+          - [ ] Add tests covering IPv6 code paths
+          - [ ] Update README with IPv6 usage examples
+
+          ## Acceptance Criteria
+          - \`python scanner.py -t ::1\` scans localhost over IPv6
+          - JSON output includes the resolved IPv6 address")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Create issue - Additional Output Formats
+        id: issue_output
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh issue create \
+            --repo ${{ github.repository }} \
+            --title "Support additional output formats (CSV, HTML report)" \
+            --label "roadmap,enhancement,phase-2" \
+            --body "## Summary
+          Allow results to be exported in CSV and HTML in addition to the existing JSON format.
+
+          ## Tasks
+          - [ ] Add \`--format\` CLI flag (\`json\`, \`csv\`, \`html\`)
+          - [ ] Implement CSV writer using \`csv\` standard library module
+          - [ ] Implement HTML report using a Jinja2 template
+          - [ ] Add tests for each output format
+          - [ ] Update README with output format examples
+
+          ## Acceptance Criteria
+          - \`-o results.csv --format csv\` produces a valid CSV file
+          - \`-o report.html --format html\` produces a human-readable HTML report with a table of open ports")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Create issue - Verbose & Logging Modes
+        id: issue_logging
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh issue create \
+            --repo ${{ github.repository }} \
+            --title "Replace print() calls with structured logging and add verbosity levels" \
+            --label "roadmap,enhancement,phase-2" \
+            --body "## Summary
+          Replace raw \`print()\` statements with Python's \`logging\` module and add verbosity control.
+
+          ## Tasks
+          - [ ] Replace all \`print()\` calls with \`logging.info()\` / \`logging.debug()\` / \`logging.error()\`
+          - [ ] Add \`-v\` / \`--verbose\` flag (DEBUG level output)
+          - [ ] Add \`-q\` / \`--quiet\` flag (suppress all non-error output)
+          - [ ] Include timestamps in log output
+          - [ ] Add tests validating log output at each level
+
+          ## Acceptance Criteria
+          - Default run shows only scan summary
+          - \`-v\` shows per-port results in real time
+          - \`-q\` suppresses all stdout output except errors")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      # ── Phase 3: Performance & Scalability ──────────────────────────────────
+
+      - name: Create issue - Asyncio Rewrite
+        id: issue_async
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh issue create \
+            --repo ${{ github.repository }} \
+            --title "Rewrite scanner core using asyncio for improved performance" \
+            --label "roadmap,performance,phase-3" \
+            --body "## Summary
+          Replace the threading model with Python's asyncio event loop to reduce overhead and handle thousands of concurrent connections more efficiently.
+
+          ## Tasks
+          - [ ] Implement async \`scan_port_async()\` using \`asyncio.open_connection()\`
+          - [ ] Replace the thread pool with an asyncio semaphore to limit concurrency
+          - [ ] Benchmark async vs threading implementations
+          - [ ] Maintain backwards-compatible CLI interface
+          - [ ] Update tests to cover async code paths
+
+          ## Acceptance Criteria
+          - Async implementation scans 1–1024 ports at least 30 % faster than the threading implementation on a LAN target
+          - All existing tests pass against the new implementation")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Create issue - Rate Limiting
+        id: issue_rate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh issue create \
+            --repo ${{ github.repository }} \
+            --title "Add rate limiting to avoid overwhelming targets or triggering IDS" \
+            --label "roadmap,performance,phase-3" \
+            --body "## Summary
+          Provide a configurable delay between connection attempts to make scans less intrusive and less likely to trigger intrusion detection systems.
+
+          ## Tasks
+          - [ ] Add \`--delay\` CLI flag (milliseconds between connection attempts)
+          - [ ] Add \`--rate\` CLI flag (maximum connections per second)
+          - [ ] Implement token-bucket rate limiter
+          - [ ] Add tests verifying the rate is respected
+          - [ ] Update README with rate limiting examples
+
+          ## Acceptance Criteria
+          - \`--rate 10\` results in no more than 10 connection attempts per second
+          - \`--delay 100\` introduces at least 100 ms between sequential connection attempts")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Create issue - Scan Profiles
+        id: issue_profiles
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh issue create \
+            --repo ${{ github.repository }} \
+            --title "Implement predefined scan profiles (common, web, full)" \
+            --label "roadmap,enhancement,phase-3" \
+            --body "## Summary
+          Allow users to quickly select a meaningful set of ports rather than always specifying start/end manually.
+
+          ## Tasks
+          - [ ] Define built-in profiles: \`common\` (top 100 ports), \`web\` (80, 443, 8080, 8443), \`full\` (1–65535)
+          - [ ] Add \`--profile\` CLI flag that sets port range automatically
+          - [ ] Allow users to define custom profiles in a YAML/JSON config file
+          - [ ] Add tests for each built-in profile
+          - [ ] Update README with profile examples
+
+          ## Acceptance Criteria
+          - \`--profile common\` scans the top 100 most common ports
+          - \`--profile web\` scans web-related ports only
+          - Custom profiles are loaded from a config file")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      # ── Phase 4: Advanced Features ───────────────────────────────────────────
+
+      - name: Create issue - Service Version Detection
+        id: issue_svc
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh issue create \
+            --repo ${{ github.repository }} \
+            --title "Improve service detection with protocol-aware probing" \
+            --label "roadmap,enhancement,phase-4" \
+            --body "## Summary
+          Go beyond passive banner grabbing by sending protocol-specific probes to better identify running services and their versions.
+
+          ## Tasks
+          - [ ] Build a probe library for common services (HTTP, FTP, SMTP, SSH, etc.)
+          - [ ] Send appropriate probes and parse responses to identify service and version
+          - [ ] Fall back to passive banner if no probe matches
+          - [ ] Include service name and version in JSON output
+          - [ ] Add tests for each service probe
+
+          ## Acceptance Criteria
+          - Port 80 is identified as 'HTTP' with server header info
+          - Port 22 is identified as 'SSH' with version string
+          - Unknown ports fall back to raw banner or 'Unknown Service'")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Create issue - OS Fingerprinting
+        id: issue_os
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh issue create \
+            --repo ${{ github.repository }} \
+            --title "Add basic OS fingerprinting via TTL analysis" \
+            --label "roadmap,enhancement,phase-4" \
+            --body "## Summary
+          Attempt to infer the target OS by analysing the TTL value of TCP responses.
+
+          ## Tasks
+          - [ ] Implement TTL-based OS guess (e.g. TTL≈64 → Linux, TTL≈128 → Windows)
+          - [ ] Add \`--os-detect\` CLI flag to enable the feature
+          - [ ] Display OS guess in scan summary and JSON output
+          - [ ] Document accuracy limitations in README
+          - [ ] Add tests for the OS detection logic
+
+          ## Acceptance Criteria
+          - \`--os-detect\` displays a best-guess OS label in the scan summary
+          - JSON output includes an \`os_guess\` field when the flag is set")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Create issue - Progress Bar
+        id: issue_progress
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(gh issue create \
+            --repo ${{ github.repository }} \
+            --title "Add a real-time progress bar during scanning" \
+            --label "roadmap,enhancement,phase-4" \
+            --body "## Summary
+          Show a live progress bar so users can see how far through the port range the scan has progressed.
+
+          ## Tasks
+          - [ ] Add \`tqdm\` as an optional dependency (graceful fallback if not installed)
+          - [ ] Update \`worker()\` to increment progress counter thread-safely
+          - [ ] Suppress progress bar when \`--quiet\` flag is set or output is not a TTY
+          - [ ] Add tests verifying the counter increments correctly
+
+          ## Acceptance Criteria
+          - A progress bar is displayed during a normal scan
+          - Progress bar is suppressed in quiet mode or when output is piped")
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      # ── Create GitHub Project v2 ─────────────────────────────────────────────
+
+      - name: Create GitHub Project
+        id: create_project
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OWNER="${{ github.repository_owner }}"
+
+          PROJECT_URL=$(gh project create \
+            --owner "$OWNER" \
+            --title "Port Scanner Roadmap" \
+            --format json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['url'])")
+
+          echo "project_url=$PROJECT_URL" >> $GITHUB_OUTPUT
+
+          PROJECT_NUMBER=$(echo "$PROJECT_URL" | grep -oP '(?<=/projects/)\d+')
+          echo "project_number=$PROJECT_NUMBER" >> $GITHUB_OUTPUT
+
+          echo "Created project: $PROJECT_URL (number: $PROJECT_NUMBER)"
+
+      - name: Add issues to project
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OWNER="${{ github.repository_owner }}"
+          NUMBER="${{ steps.create_project.outputs.project_number }}"
+
+          ISSUE_URLS=(
+            "${{ steps.issue_ci.outputs.url }}"
+            "${{ steps.issue_docker.outputs.url }}"
+            "${{ steps.issue_quality.outputs.url }}"
+            "${{ steps.issue_udp.outputs.url }}"
+            "${{ steps.issue_ipv6.outputs.url }}"
+            "${{ steps.issue_output.outputs.url }}"
+            "${{ steps.issue_logging.outputs.url }}"
+            "${{ steps.issue_async.outputs.url }}"
+            "${{ steps.issue_rate.outputs.url }}"
+            "${{ steps.issue_profiles.outputs.url }}"
+            "${{ steps.issue_svc.outputs.url }}"
+            "${{ steps.issue_os.outputs.url }}"
+            "${{ steps.issue_progress.outputs.url }}"
+          )
+
+          for URL in "${ISSUE_URLS[@]}"; do
+            if [ -n "$URL" ]; then
+              echo "Adding $URL to project $NUMBER..."
+              gh project item-add "$NUMBER" --owner "$OWNER" --url "$URL" || echo "Warning: could not add $URL"
+            fi
+          done
+
+      - name: Print project URL
+        run: |
+          echo "✅ GitHub Project created successfully!"
+          echo "📋 Project URL: ${{ steps.create_project.outputs.project_url }}"
